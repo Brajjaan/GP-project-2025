@@ -4,7 +4,12 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/ithappy/Furniture_Cute/Scenes/Built-In_Scenes/Demonstration_Built-In.unity
+    guid: eff176dde9d81f247a663a83d3921e0a
   m_configObjects:
+    com.unity.adaptiveperformance.loader_settings: {fileID: 11400000, guid: b01d083229758194cb4a76525f12f5bf,
+      type: 2}
     com.unity.adaptiveperformance.simulator.provider_settings: {fileID: 11400000,
       guid: 120c8981393c1ea4489701c883164849, type: 2}
