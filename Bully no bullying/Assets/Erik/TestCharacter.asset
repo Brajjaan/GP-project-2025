@@ -10,11 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0efd09bacd7597a4ab0f75df8f4faeec, type: 3}
-  m_Name: Test
+  m_Name: TestCharacter
   m_EditorClassIdentifier: 
-  CharacterName: 
+  characterName: 
   description: 
   icon: {fileID: 0}
   morale: 0
   relationshipLevel: 0
   relationshipPoints: 0
+  isBully: 0

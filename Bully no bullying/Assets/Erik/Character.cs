@@ -1,25 +1,16 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using Interfaces;
 
 [CreateAssetMenu(fileName = "New Character", menuName = "Character/NPC")]
-public class Character : ScriptableObject, IInteractable
+public class Character : ScriptableObject
 {
    //Basic character information 
-   [SerializeField] private string CharacterName;
+   [SerializeField] private string characterName;
    [SerializeField, TextArea] private string description;
    [SerializeField] private Sprite icon;
    [SerializeField] private int morale;
    [SerializeField] private RelationshipLevel relationshipLevel;
    [SerializeField] private int relationshipPoints;
    [SerializeField] private bool isBully;
-   
-   public void Interact()
-   {
-       // Implement interaction logic here
-       Debug.Log($"Interacting with {CharacterName}. Relationship Level: {relationshipLevel}");
-   }
    
    public void AddRelationshipPoints(int points)
    {
@@ -36,29 +27,18 @@ public class Character : ScriptableObject, IInteractable
    
    private void UpdateRelationshipLevel()
    {
-       // Determine the relationship level based on relationship points
-       if (relationshipPoints < 100)
+       relationshipLevel = relationshipPoints switch
        {
-           relationshipLevel = RelationshipLevel.Unfriendly;
-       }
-       else if (relationshipPoints is > 100 and < 200)
-       {
-           relationshipLevel = RelationshipLevel.Classmate;
-       }
-       else if (relationshipPoints is >= 200 and < 300)
-       {
-           relationshipLevel = RelationshipLevel.Friendly;
-       }
-       else if (relationshipPoints is >= 300 and < 400)
-       {
-           relationshipLevel = RelationshipLevel.CloseFriend;
-       }
-       else if (relationshipPoints >= 400)
-       {
-           relationshipLevel = RelationshipLevel.BestFriend;
-       }
+           // Determine the relationship level based on relationship points
+           < 100 => RelationshipLevel.Unfriendly,
+           > 100 and < 200 => RelationshipLevel.Classmate,
+           >= 200 and < 300 => RelationshipLevel.Friendly,
+           >= 300 and < 400 => RelationshipLevel.CloseFriend,
+           >= 400 => RelationshipLevel.BestFriend,
+           
+           _ => RelationshipLevel.Classmate
+       };
    }
-   
 }
 
 enum RelationshipLevel
