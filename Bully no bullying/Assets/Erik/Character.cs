@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "New Character", menuName = "Character/NPC")]
@@ -11,7 +12,58 @@ public class Character : ScriptableObject
    [SerializeField] private RelationshipLevel relationshipLevel;
    [SerializeField] private int relationshipPoints;
    [SerializeField] private bool isBully;
-   
+   [SerializeField] private List<int> AvailableDialogId = new List<int>();
+   [SerializeField] private List<int> UsedDialogId = new List<int>();
+   [SerializeField] private int DialogStartId;
+   [SerializeField] private int DialogEndId;
+
+   public void initializeDialogue(int startId, int endId)
+   {
+       DialogStartId = startId;
+       DialogEndId = endId;
+       AvailableDialogId.Clear();
+       UsedDialogId.Clear();
+       for (int i = startId; i <= endId; i++)
+       {
+           AvailableDialogId.Add(i);
+       }
+   }
+
+   public int GetRandomDialogue()
+   {
+       if (AvailableDialogId.Count == 0)
+       {
+           Resetdialogs();
+       }
+
+       if (AvailableDialogId.Count == 0)
+       {
+           return-1;
+       }
+       
+       int Randomindex = Random.Range(0, AvailableDialogId.Count);
+       int selectedDialogId = AvailableDialogId[Randomindex];
+       AvailableDialogId.RemoveAt(Randomindex);
+       UsedDialogId.Add(selectedDialogId);
+       
+       return selectedDialogId;
+   }
+
+   private void Resetdialogs()
+   {
+       AvailableDialogId.Clear();
+       for (int i = DialogStartId; i <= DialogEndId; i++)
+       {
+           AvailableDialogId.Add(i);
+       }
+       UsedDialogId.Clear();
+   }
+
+   public bool HasAvailableDialog()
+   {
+       return AvailableDialogId.Count > 0;
+   }
+
    public void AddRelationshipPoints(int points)
    {
        relationshipPoints += points;
