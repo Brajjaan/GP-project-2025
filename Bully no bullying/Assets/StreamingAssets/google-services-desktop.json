@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1075484926033",
+    "project_id": "bullynobullying-f4353",
+    "storage_bucket": "bullynobullying-f4353.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1075484926033:android:f5da8c78a33e71a20c1870",
+        "android_client_info": {
+          "package_name": "com.DefaultCompany.Bullynobullying"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6cdoTAH14AED2A2EOIeZKd2FxJ0tQ8xU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
