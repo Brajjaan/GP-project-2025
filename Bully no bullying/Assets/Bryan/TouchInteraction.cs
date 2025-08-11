@@ -1,40 +1,59 @@
-// TouchInteraction.cs
 using UnityEngine;
 using UnityEngine.EventSystems;
 using Interfaces;
 
 public class TouchInteraction : MonoBehaviour
 {
-    void Update()
-    {
-        // Only respond to the beginning of a touch
-#if UNITY_EDITOR
-        if (Input.GetMouseButtonDown(0))
-        {
-            HandleTouch(Input.mousePosition);
-        }
-#else
-        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
-        {
-            // Ignore touches on UI
-            if (EventSystem.current != null &&
-                EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId)) return;
+    private Camera mainCam;
 
-            HandleTouch(Input.GetTouch(0).position);
-        }
-#endif
+    void Awake()
+    {
+        mainCam = Camera.main;
     }
 
-    void HandleTouch(Vector2 screenPos)
+    void Update()
     {
-        Ray ray = Camera.main.ScreenPointToRay(screenPos);
+        Vector2? touchPos = GetInputPosition();
+        if (touchPos.HasValue)
+        {
+            HandleTouch(touchPos.Value);
+        }
+    }
+
+    private Vector2? GetInputPosition()
+    {
+        // Mouse input
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (!IsPointerOverUI())
+                return Input.mousePosition;
+        }
+
+        // Touch input
+        if (Input.touchCount > 0)
+        {
+            var touch = Input.GetTouch(0);
+            if (touch.phase == TouchPhase.Began && !IsPointerOverUI(touch.fingerId))
+                return touch.position;
+        }
+
+        return null;
+    }
+
+    private bool IsPointerOverUI(int fingerId = -1)
+    {
+        return EventSystem.current != null &&
+               EventSystem.current.IsPointerOverGameObject(fingerId);
+    }
+
+    private void HandleTouch(Vector2 screenPos)
+    {
+        if (mainCam == null) return;
+
+        Ray ray = mainCam.ScreenPointToRay(screenPos);
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
-            IInteractable interactable = hit.collider.GetComponent<IInteractable>();
-            if (interactable != null)
-            {
-                interactable.Interact();
-            }
+            hit.collider.GetComponent<IInteractable>()?.Interact();
         }
     }
 }
