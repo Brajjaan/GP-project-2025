@@ -1,145 +1,86 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Interfaces;
+using TMPro;
+using UnityEngine.UI;
 
-[CreateAssetMenu(fileName = "New Character", menuName = "Character/NPC")]
-public class Character : ScriptableObject
+public class Character : MonoBehaviour, IInteractable
 {
-    // Basic character informations
-    [SerializeField] private string characterName;
-    [SerializeField, TextArea] private string description;
-    [SerializeField] private Sprite icon;
-    [SerializeField] private RelationshipLevel relationshipLevel;
-    [SerializeField] private int relationshipPoints;
-    [SerializeField] private bool isBully;
-    [SerializeField] private List<DialogueData> dialogueData;
-    [SerializeField] private List<DialogueData> usedDialogues;
+    [SerializeField] GameManager gameManager;
+    [SerializeField] SO_Character characterData;
+    [SerializeField] Canvas dialogueCanvas;
+    [SerializeField] Image characterIcon;
+    [SerializeField] TMP_Text characterMainText;
+    [SerializeField] TMP_Text choice1Text;
+    [SerializeField] TMP_Text choice2Text;
+    [SerializeField] TMP_Text choice3Text;
+    [SerializeField] Button choice1Button;
+    [SerializeField] Button choice2Button;
+    [SerializeField] Button choice3Button;
 
-    [Header("Dialog Settings")]
-    [SerializeField] private CharacterFolder characterFolder = CharacterFolder.Character1;
-    [SerializeField] public bool autoLoadDialogs = true;
-
-    // Public properties
-    public string CharacterName => characterName;
-    public string Description => description;
-    public Sprite Icon => icon;
-    public RelationshipLevel CurrentRelationshipLevel => relationshipLevel;
-    public int CurrentRelationshipPoints => relationshipPoints;
-    public bool IsBully => isBully;
-    public List<DialogueData> DialogueData => dialogueData;
-    public List<DialogueData> UsedDialogues => usedDialogues;
-    public CharacterFolder SelectedCharacterFolder => characterFolder;
-
-    [ContextMenu("Load Dialogs from Folder")]
-    public void LoadDialogsFromFolder()
+    void Start()
     {
-        dialogueData.Clear();
-        int folderNumber = (int)characterFolder;
-
-#if UNITY_EDITOR
-        string folderPath = $"Assets/Characters/Character {folderNumber} Dialogue";
-        string[] guids = UnityEditor.AssetDatabase.FindAssets("t:DialogueData", new[] { folderPath });
-        
-        DialogueData[] loadedDialogs = new DialogueData[guids.Length];
-        for (int i = 0; i < guids.Length; i++)
+        dialogueCanvas.gameObject.SetActive(false);
+        if (characterData != null)
         {
-            string assetPath = UnityEditor.AssetDatabase.GUIDToAssetPath(guids[i]);
-            loadedDialogs[i] = UnityEditor.AssetDatabase.LoadAssetAtPath<DialogueData>(assetPath);
-        }
-#else
-        DialogueData[] loadedDialogs = new DialogueData[0];
-#endif
-
-        if (loadedDialogs.Length > 0)
-        {
-            dialogueData.AddRange(loadedDialogs);
-            //Debug.Log($"Loaded {loadedDialogs.Length} dialogs from Characters/Character {folderNumber} Dialogue");
-
-#if UNITY_EDITOR
-            UnityEditor.EditorUtility.SetDirty(this);
-            UnityEditor.AssetDatabase.SaveAssets();
-#endif
-        }
-        else
-        {
-            //Debug.LogWarning($"No dialogs found in folder: Characters/Character {folderNumber} Dialogue");
+            characterData = Instantiate(characterData);
+            return;
         }
     }
 
-    private void OnValidate()
+    private void EnterDialogue()
     {
-        if (autoLoadDialogs)
+        gameManager.isInteracting = true;
+        dialogueCanvas.gameObject.SetActive(true);
+        DialogueData randomDialog = characterData.GetRandomDialogue();
+
+        while (characterData.UsedDialogues.Contains(randomDialog))
         {
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.delayCall += LoadDialogsFromFolder;
-#endif
+            int i = 0;
+            randomDialog = characterData.GetRandomDialogue();
+            i++;
+            if (i > 100)
+            {
+                return;
+            }
         }
+        characterData.UsedDialogues.Add(randomDialog);
+        characterMainText.text = randomDialog.DialogText;
+        choice1Text.text = randomDialog.Choices[0].ChoiceText;
+        choice2Text.text = randomDialog.Choices[1].ChoiceText;
+        choice3Text.text = randomDialog.Choices[2].ChoiceText;
+
+        choice1Button.onClick.RemoveAllListeners();
+        choice2Button.onClick.RemoveAllListeners();
+        choice3Button.onClick.RemoveAllListeners();
+
+        choice1Button.onClick.AddListener(() => OnChoiceSelected(randomDialog.Choices[0]));
+        choice2Button.onClick.AddListener(() => OnChoiceSelected(randomDialog.Choices[1]));
+        choice3Button.onClick.AddListener(() => OnChoiceSelected(randomDialog.Choices[2]));
+
+        characterIcon.sprite = characterData.Icon;
     }
 
-    public void ApplyDialogChoice(DialogueChoice choice)
+    private void OnChoiceSelected(DialogueChoice choice)
     {
-        if (choice.ReputationPoint > 0)
+        characterData.ApplyDialogChoice(choice);
+        StartCoroutine(HideCanvasAfterDelay());
+    }
+
+    private IEnumerator HideCanvasAfterDelay()
+    {
+        yield return new WaitForSeconds(0.5f);
+        dialogueCanvas.gameObject.SetActive(false);
+        gameManager.isInteracting = false;
+    }
+
+    public void Interact()
+    {
+        if (gameManager.isInteracting)
         {
-            AddRelationshipPoints(choice.ReputationPoint);
+            return;
         }
-        else if (choice.ReputationPoint < 0)
-        {
-            RemoveRelationshipPoints(-choice.ReputationPoint);
-        }
+        EnterDialogue();
     }
-
-    public void AddRelationshipPoints(int points)
-    {
-        relationshipPoints += points;
-        UpdateRelationshipLevel();
-    }
-
-    public void RemoveRelationshipPoints(int points)
-    {
-        relationshipPoints -= points;
-        if (relationshipPoints < 0) relationshipPoints = 0;
-        UpdateRelationshipLevel();
-    }
-
-    private void UpdateRelationshipLevel()
-    {
-        relationshipLevel = relationshipPoints switch
-        {
-            < 100 => RelationshipLevel.Unfriendly,
-            > 100 and < 200 => RelationshipLevel.Classmate,
-            >= 200 and < 300 => RelationshipLevel.Friendly,
-            >= 300 and < 400 => RelationshipLevel.CloseFriend,
-            >= 400 => RelationshipLevel.BestFriend,
-            _ => RelationshipLevel.Classmate
-        };
-    }
-    
-    public DialogueData GetRandomDialogue()
-    {
-        if (dialogueData == null || dialogueData.Count == 0)
-        {
-            Debug.LogWarning($"No dialogues available for character: {characterName}");
-            return null;
-        }
-
-        int randomIndex = Random.Range(0, dialogueData.Count);
-        return dialogueData[randomIndex];
-    }
-}
-
-public enum CharacterFolder
-{
-    Character1 = 1,
-    Character2 = 2,
-    Character3 = 3,
-    Character4 = 4,
-    Character5 = 5
-}
-
-public enum RelationshipLevel
-{
-    Unfriendly,
-    Classmate,
-    Friendly,
-    CloseFriend,
-    BestFriend
 }
