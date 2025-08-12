@@ -19,7 +19,6 @@ public class DialogueData : ScriptableObject
 public class DialogueChoice
 {
     [SerializeField] public string choiceText;
-    [SerializeField] public string responseText;
     [SerializeField] public int reputationPoint;
     public string ChoiceText => choiceText;
     public int ReputationPoint => reputationPoint;

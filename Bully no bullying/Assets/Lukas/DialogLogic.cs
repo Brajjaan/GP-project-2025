@@ -21,7 +21,6 @@ public class DialogLogic : MonoBehaviour
         {
             Debug.Log($"Choice: {choice.ChoiceText} (Reputation: {choice.ReputationPoint})");
             // Here we would normally display the choice in the UI
-            Debug.Log($"Response: {choice.responseText}");
         }
     }
 }
