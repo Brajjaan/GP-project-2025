@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 public class Character : MonoBehaviour, IInteractable
 {
+    //test 
     [SerializeField] GameManager gameManager;
     [SerializeField] SO_Character characterData;
     [SerializeField] Canvas dialogueCanvas;
