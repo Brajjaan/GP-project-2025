@@ -1,6 +1,8 @@
 using Firebase.Auth;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+using UI; // For Popup
 
 namespace Firebase.Scripts
 {
@@ -10,25 +12,58 @@ namespace Firebase.Scripts
         public TMP_InputField emailInputField;
         public TMP_InputField passwordInputField;
         public TMP_Text statusText;
+        public Toggle rememberMeToggle;
 
         [Header("Loading Indicator")]
-        // ***
-    
-        public GameObject loadingPanel; // Todo if needed
-    
-        // ***
+        public GameObject loadingPanel;
+
+        [Header("Login Popup")]
+        public Popup loginPopup; // Assign Register - Log In popup here
 
         private FirebaseAuth firebaseAuthInstance;
         private FirebaseUser currentUser;
 
+        // PlayerPrefs keys
+        private const string RememberMeKey = "RememberMe";
+        private const string SavedEmailKey = "SavedEmail";
+
         void Start()
         {
             if (loadingPanel != null)
-            {
                 loadingPanel.SetActive(false);
+
+            LoadRememberedCredentials();
+            InitAuth();
+        }
+
+        private void LoadRememberedCredentials()
+        {
+            bool rememberMe = PlayerPrefs.GetInt(RememberMeKey, 0) == 1;
+            if (rememberMeToggle != null)
+                rememberMeToggle.isOn = rememberMe;
+
+            if (rememberMe && emailInputField != null)
+            {
+                string savedEmail = PlayerPrefs.GetString(SavedEmailKey, "");
+                emailInputField.text = savedEmail;
             }
         }
-    
+
+        private void SaveRememberedCredentials()
+        {
+            if (rememberMeToggle != null && rememberMeToggle.isOn)
+            {
+                PlayerPrefs.SetInt(RememberMeKey, 1);
+                PlayerPrefs.SetString(SavedEmailKey, emailInputField.text);
+            }
+            else
+            {
+                PlayerPrefs.SetInt(RememberMeKey, 0);
+                PlayerPrefs.DeleteKey(SavedEmailKey);
+            }
+            PlayerPrefs.Save();
+        }
+
         public void InitAuth()
         {
             firebaseAuthInstance = FirebaseAuth.DefaultInstance;
@@ -37,13 +72,10 @@ namespace Firebase.Scripts
             Debug.Log("AuthManager: Firebase Auth initialized.");
         }
 
-
         void OnDestroy()
         {
             if (firebaseAuthInstance != null)
-            {
                 firebaseAuthInstance.StateChanged -= AuthStateChanged;
-            }
         }
 
         void AuthStateChanged(object sender, System.EventArgs eventArgs)
@@ -51,12 +83,6 @@ namespace Firebase.Scripts
             if (firebaseAuthInstance.CurrentUser != currentUser)
             {
                 bool signedIn = firebaseAuthInstance.CurrentUser != null;
-                if (!signedIn && currentUser != null)
-                {
-                    Debug.Log("Signed out user: " + currentUser.UserId);
-                    UpdateStatus("You have been signed out.");
-                    LoadLoginScene();
-                }
                 currentUser = firebaseAuthInstance.CurrentUser;
 
                 if (signedIn)
@@ -64,25 +90,31 @@ namespace Firebase.Scripts
                     Debug.LogFormat("Signed in user: {0} ({1})",
                         currentUser.DisplayName ?? "No Display Name", currentUser.Email);
                     UpdateStatus("Currently signed in as: " + currentUser.Email);
+
+                    if (loginPopup != null)
+                        loginPopup.Close();
+
                     LoadMainGameScene();
                 }
                 else
                 {
                     Debug.Log("No user currently signed in.");
                     UpdateStatus("Please sign in or register.");
+
+                    if (loginPopup != null)
+                        loginPopup.Open();
                 }
             }
         }
 
         private void SetUIInteractable(bool interactable)
         {
-            emailInputField.interactable = interactable;
-            passwordInputField.interactable = interactable;
+            if (emailInputField != null) emailInputField.interactable = interactable;
+            if (passwordInputField != null) passwordInputField.interactable = interactable;
+            if (rememberMeToggle != null) rememberMeToggle.interactable = interactable;
 
             if (loadingPanel != null)
-            {
                 loadingPanel.SetActive(!interactable);
-            }
         }
 
         public void RegisterUser()
@@ -114,49 +146,21 @@ namespace Firebase.Scripts
 
                 if (task.IsCanceled)
                 {
-                    Debug.LogError("CreateUserWithEmailAndPasswordAsync was canceled.");
+                    Debug.LogError("Registration cancelled.");
                     UpdateStatus("Registration cancelled.");
                     return;
                 }
                 if (task.IsFaulted)
                 {
-                    Debug.LogError("CreateUserWithEmailAndPasswordAsync encountered an error: " + task.Exception);
-                    if (task.Exception != null)
-                    {
-                        FirebaseException firebaseEx = task.Exception.GetBaseException() as FirebaseException;
-                        string errorMessage = "Registration failed.";
-                        if (firebaseEx != null)
-                        {
-                            AuthError authError = (AuthError)firebaseEx.ErrorCode;
-                            switch (authError)
-                            {
-                                case AuthError.EmailAlreadyInUse:
-                                    errorMessage = "This email is already registered.";
-                                    break;
-                                case AuthError.WeakPassword:
-                                    errorMessage = "Password is too weak. Needs at least 6 characters.";
-                                    break;
-                                case AuthError.InvalidEmail:
-                                    errorMessage = "Invalid email format.";
-                                    break;
-                                case AuthError.OperationNotAllowed:
-                                    errorMessage = "Email/Password sign-up is not enabled in Firebase Console. Please enable it in Authentication -> Sign-in method!";
-                                    break;
-                                default:
-                                    errorMessage = $"Registration error: {firebaseEx.Message}";
-                                    break;
-                            }
-                        }
-                        UpdateStatus(errorMessage);
-                    }
-
+                    Debug.LogError("Registration error: " + task.Exception);
+                    UpdateStatus("Registration failed.");
                     return;
                 }
 
+                SaveRememberedCredentials();
+
                 AuthResult result = task.Result;
                 currentUser = result.User;
-                Debug.LogFormat("User registered successfully: {0} ({1})",
-                    currentUser.DisplayName ?? "No Display Name", currentUser.Email);
                 UpdateStatus("Registration Successful! Signed in as: " + currentUser.Email);
 
                 HandleAuthSuccessTransition();
@@ -187,49 +191,21 @@ namespace Firebase.Scripts
 
                 if (task.IsCanceled)
                 {
-                    Debug.LogError("SignInWithEmailAndPasswordAsync was canceled.");
+                    Debug.LogError("Login cancelled.");
                     UpdateStatus("Login cancelled.");
                     return;
                 }
                 if (task.IsFaulted)
                 {
-                    Debug.LogError("SignInWithEmailAndPasswordAsync encountered an error: " + task.Exception);
-                    if (task.Exception != null)
-                    {
-                        FirebaseException firebaseEx = task.Exception.GetBaseException() as FirebaseException;
-                        string errorMessage = "Login failed.";
-                        if (firebaseEx != null)
-                        {
-                            AuthError authError = (AuthError)firebaseEx.ErrorCode;
-                            switch (authError)
-                            {
-                                case AuthError.WrongPassword:
-                                    errorMessage = "Incorrect password.";
-                                    break;
-                                case AuthError.UserNotFound:
-                                    errorMessage = "No account found with this email.";
-                                    break;
-                                case AuthError.InvalidEmail:
-                                    errorMessage = "Invalid email format.";
-                                    break;
-                                case AuthError.UserDisabled:
-                                    errorMessage = "This account has been disabled.";
-                                    break;
-                                default:
-                                    errorMessage = $"Login error: {firebaseEx.Message}";
-                                    break;
-                            }
-                        }
-                        UpdateStatus(errorMessage);
-                    }
-
+                    Debug.LogError("Login error: " + task.Exception);
+                    UpdateStatus("Login failed.");
                     return;
                 }
 
+                SaveRememberedCredentials();
+
                 AuthResult result = task.Result;
                 currentUser = result.User;
-                Debug.LogFormat("User logged in successfully: {0} ({1})",
-                    currentUser.DisplayName ?? "No Display Name", currentUser.Email);
                 UpdateStatus("Login Successful! Signed in as: " + currentUser.Email);
 
                 HandleAuthSuccessTransition();
@@ -253,11 +229,9 @@ namespace Firebase.Scripts
         private void UpdateStatus(string message)
         {
             if (statusText != null)
-            {
                 statusText.text = message;
-            }
         }
-    
+
         private void HandleAuthSuccessTransition()
         {
             emailInputField.text = "";
@@ -267,21 +241,11 @@ namespace Firebase.Scripts
 
         private void LoadMainGameScene()
         {
-            // ***
-        
-            // TODO SceneManager.LoadScene(" ");
-        
-            // ***
             Debug.Log("Loading main game scene.");
         }
 
         private void LoadLoginScene()
         {
-            // ***
-        
-            // TODO SceneManager.LoadScene(" ");
-        
-            // ***
             Debug.Log("Loading login scene.");
         }
     }
