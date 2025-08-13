@@ -7,7 +7,6 @@ using UnityEngine.UI;
 
 public class Character : MonoBehaviour, IInteractable
 {
-    //test 
     [SerializeField] GameManager gameManager;
     [SerializeField] SO_Character characterData;
     [SerializeField] Canvas dialogueCanvas;
@@ -47,7 +46,7 @@ public class Character : MonoBehaviour, IInteractable
             }
         }
         characterData.UsedDialogues.Add(randomDialog);
-        characterMainText.text = randomDialog.DialogText;
+        characterMainText.text = characterData.CharacterName + " : " + randomDialog.DialogText;
         choice1Text.text = randomDialog.Choices[0].ChoiceText;
         choice2Text.text = randomDialog.Choices[1].ChoiceText;
         choice3Text.text = randomDialog.Choices[2].ChoiceText;
