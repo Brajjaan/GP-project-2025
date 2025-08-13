@@ -4,25 +4,55 @@ namespace UI
 {
     public class PopupSwitcher : MonoBehaviour
     {
-        public Popup loginPopup;
-        public Popup signupPopup;
+        public LoginPopup loginPopup;
+        public LoginPopup signupPopup;
+        public LoginPopup errorPopup;
+        public LoginPopup signOutWarningPopup;
+
+        private bool returnToLogin = true; // default
 
         public void ShowSignUp()
         {
-            if (loginPopup != null)
-                loginPopup.Close();
+            returnToLogin = false;
 
-            if (signupPopup != null)
-                signupPopup.Open();
+            if (loginPopup != null) loginPopup.Close();
+            if (signupPopup != null) signupPopup.Open();
         }
 
         public void ShowLogin()
         {
-            if (signupPopup != null)
-                signupPopup.Close();
+            returnToLogin = true;
 
-            if (loginPopup != null)
+            if (signupPopup != null) signupPopup.Close();
+            if (loginPopup != null) loginPopup.Open();
+        }
+
+        public void ShowError(bool backToLogin)
+        {
+            returnToLogin = backToLogin;
+
+            if (loginPopup != null) loginPopup.Close();
+            if (signupPopup != null) signupPopup.Close();
+            if (errorPopup != null) errorPopup.Open();
+        }
+
+        public void TryAgainFromError()
+        {
+            if (errorPopup != null) errorPopup.Close();
+
+            if (returnToLogin && loginPopup != null)
                 loginPopup.Open();
+            else if (!returnToLogin && signupPopup != null)
+                signupPopup.Open();
+        }
+
+        public void ShowSignOutWarning()
+        {
+            if (loginPopup != null) loginPopup.Close();
+            if (signupPopup != null) signupPopup.Close();
+            if (errorPopup != null) errorPopup.Close();
+            
+            if (signOutWarningPopup != null) signOutWarningPopup.Open();
         }
     }
 }
