@@ -1,9 +1,8 @@
-// LoginPopup.cs
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System; // <<< ADDED FOR Action
+using System;
 
 namespace UI
 {
