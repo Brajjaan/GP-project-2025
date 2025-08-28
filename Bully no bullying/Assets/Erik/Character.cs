@@ -29,7 +29,7 @@ public class Character : MonoBehaviour, IInteractable
         }
     }
 
-    private void EnterDialogue()
+    public void EnterDialogue()
     {
         gameManager.isInteracting = true;
         dialogueCanvas.gameObject.SetActive(true);
