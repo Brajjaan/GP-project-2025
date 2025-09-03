@@ -3337,7 +3337,7 @@ GameObject:
   - component: {fileID: 7026287774621171855}
   - component: {fileID: 5551947280113561776}
   m_Layer: 5
-  m_Name: InGameUI
+  m_Name: IngameUI OutDated
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
