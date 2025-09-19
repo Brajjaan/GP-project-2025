@@ -4,6 +4,7 @@ using UnityEngine;
 using Interfaces;
 using TMPro;
 using UnityEngine.UI;
+using System.Linq;
 
 public class Character : MonoBehaviour, IInteractable
 {
@@ -25,6 +26,15 @@ public class Character : MonoBehaviour, IInteractable
         if (characterData != null)
         {
             characterData = Instantiate(characterData);
+            
+            
+            // Loads used dialogs from save
+            List<string> loadedNames = SaveData.LoadUsedDialogues(characterData.CharacterName);
+            characterData.UsedDialogues.Clear();
+            characterData.UsedDialogues.AddRange(
+                characterData.DialogueData.Where(d => loadedNames.Contains(d.DialogName))
+            ); 
+
             return;
         }
     }
@@ -46,6 +56,10 @@ public class Character : MonoBehaviour, IInteractable
             }
         }
         characterData.UsedDialogues.Add(randomDialog);
+        SaveData.SaveUsedDialogues(
+            characterData.CharacterName,
+            characterData.UsedDialogues.Select(d => d.DialogName).ToList()
+        );
         characterMainText.text = characterData.CharacterName + " : " + randomDialog.DialogText;
         choice1Text.text = randomDialog.Choices[0].ChoiceText;
         choice2Text.text = randomDialog.Choices[1].ChoiceText;

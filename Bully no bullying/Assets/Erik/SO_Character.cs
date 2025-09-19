@@ -12,7 +12,7 @@ public class SO_Character : ScriptableObject
     [SerializeField] private RelationshipLevel relationshipLevel;
     [SerializeField] private int relationshipPoints;
     [SerializeField] private bool isBully;
-    [SerializeField] private List<DialogueData> dialogueData;
+    [SerializeField] public List<DialogueData> dialogueData;
     [SerializeField] private List<DialogueData> usedDialogues;
 
     [Header("Dialog Settings")]
