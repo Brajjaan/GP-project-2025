@@ -27,7 +27,7 @@ public class CanvasTrigger : MonoBehaviour
         }
     }
 
-    void TriggerCanvas()
+    public void TriggerCanvas()
     {
         if (chatroomCanvasManager != null)
         {
