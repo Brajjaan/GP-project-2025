@@ -81,6 +81,8 @@ public class SO_Character : ScriptableObject
         if (choice.ReputationPoint > 0)
         {
             AddRelationshipPoints(choice.ReputationPoint);
+            Debug.Log(choice.ReputationPoint);
+            Debug.Log(relationshipPoints);
         }
         else if (choice.ReputationPoint < 0)
         {
