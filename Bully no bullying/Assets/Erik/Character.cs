@@ -26,14 +26,26 @@ public class Character : MonoBehaviour, IInteractable
         if (characterData != null)
         {
             characterData = Instantiate(characterData);
-            
-            
-            // Loads used dialogs from save
+
+            // Load used dialogues
             List<string> loadedNames = SaveData.LoadUsedDialogues(characterData.CharacterName);
             characterData.UsedDialogues.Clear();
             characterData.UsedDialogues.AddRange(
                 characterData.DialogueData.Where(d => loadedNames.Contains(d.DialogName))
-            ); 
+            );
+
+            // Load relationship points (reputation)
+            int savedPoints = SaveData.LoadRelationshipPoints(characterData.CharacterName);
+            if (savedPoints > 0)
+            {
+                typeof(SO_Character)
+                    .GetField("relationshipPoints", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+                    .SetValue(characterData, savedPoints);
+
+                // Update relationship level after loading
+                var updateMethod = typeof(SO_Character).GetMethod("UpdateRelationshipLevel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                updateMethod.Invoke(characterData, null);
+            }
 
             return;
         }
@@ -78,9 +90,19 @@ public class Character : MonoBehaviour, IInteractable
 
     private void OnChoiceSelected(DialogueChoice choice)
     {
+        Debug.Log($"[DIALOGUE] {characterData.CharacterName} — Player chose: \"{choice.ChoiceText}\" " +
+                  $"(Reputation change: {choice.ReputationPoint})");
+
+        // Apply the reputation change
         characterData.ApplyDialogChoice(choice);
+
+        // Now log the updated relationship points and level
+        Debug.Log($"[REPUTATION] {characterData.CharacterName} — New Relationship Points: {characterData.CurrentRelationshipPoints}, " +
+                  $"Current Level: {characterData.CurrentRelationshipLevel}");
+
         StartCoroutine(HideCanvasAfterDelay());
     }
+
 
     private IEnumerator HideCanvasAfterDelay()
     {

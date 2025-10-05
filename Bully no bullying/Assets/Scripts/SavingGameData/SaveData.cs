@@ -32,4 +32,24 @@ public static class SaveData
         string saveKey = characterName + "_usedDialogues";
         PlayerPrefs.DeleteKey(saveKey);
     }
+    public static void SaveRelationshipPoints(string characterName, int points)
+    {
+        string saveKey = characterName + "_relationshipPoints";
+        PlayerPrefs.SetInt(saveKey, points);
+        PlayerPrefs.Save();
+    }
+
+    public static int LoadRelationshipPoints(string characterName)
+    {
+        string saveKey = characterName + "_relationshipPoints";
+        return PlayerPrefs.HasKey(saveKey) ? PlayerPrefs.GetInt(saveKey) : 0;
+    }
+
+    public static void ClearRelationshipPoints(string characterName)
+    {
+        string saveKey = characterName + "_relationshipPoints";
+        PlayerPrefs.DeleteKey(saveKey);
+    }
+
+    
 }

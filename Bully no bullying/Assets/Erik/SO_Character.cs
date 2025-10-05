@@ -88,6 +88,7 @@ public class SO_Character : ScriptableObject
         {
             RemoveRelationshipPoints(-choice.ReputationPoint);
         }
+        SaveData.SaveRelationshipPoints(characterName, relationshipPoints);
     }
 
     public void AddRelationshipPoints(int points)
@@ -107,11 +108,12 @@ public class SO_Character : ScriptableObject
     {
         relationshipLevel = relationshipPoints switch
         {
-            < 100 => RelationshipLevel.Unfriendly,
-            > 100 and < 200 => RelationshipLevel.Classmate,
-            >= 200 and < 300 => RelationshipLevel.Friendly,
-            >= 300 and < 400 => RelationshipLevel.CloseFriend,
-            >= 400 => RelationshipLevel.BestFriend,
+            
+            < 10 => RelationshipLevel.Neutral,
+            > 10 and < 20 => RelationshipLevel.Classmate,
+            >= 20 and < 30 => RelationshipLevel.Friendly,
+            >= 30 and < 40 => RelationshipLevel.CloseFriend,
+            >= 40 => RelationshipLevel.BestFriend,
             _ => RelationshipLevel.Classmate
         };
     }
@@ -141,7 +143,7 @@ public enum CharacterFolder
 
 public enum RelationshipLevel
 {
-    Unfriendly,
+    Neutral,
     Classmate,
     Friendly,
     CloseFriend,
