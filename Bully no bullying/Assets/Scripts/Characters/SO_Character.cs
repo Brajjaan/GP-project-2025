@@ -1,10 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 using Interfaces;
 
 [CreateAssetMenu(fileName = "New Character", menuName = "Character/NPC")]
 public class SO_Character : ScriptableObject
 {
+    public event Action OnRelationshipChanged;
+    
     // Basic character informations
     [SerializeField] private string characterName;
     [SerializeField, TextArea] private string description;
@@ -89,26 +92,37 @@ public class SO_Character : ScriptableObject
             RemoveRelationshipPoints(-choice.ReputationPoint);
         }
         SaveData.SaveRelationshipPoints(characterName, relationshipPoints);
+        CharacterDataCache.SaveCharacterData(this);
     }
 
     public void AddRelationshipPoints(int points)
     {
+        int oldPoints = relationshipPoints;
         relationshipPoints += points;
         UpdateRelationshipLevel();
+
+        Debug.Log($"[REPUTATION] {characterName}: +{points} points (Old: {oldPoints}, New: {relationshipPoints}) — Level: {relationshipLevel}");
+
+        OnRelationshipChanged?.Invoke();
     }
 
     public void RemoveRelationshipPoints(int points)
     {
+        int oldPoints = relationshipPoints;
         relationshipPoints -= points;
         if (relationshipPoints < 0) relationshipPoints = 0;
         UpdateRelationshipLevel();
+
+        Debug.Log($"[REPUTATION] {characterName}: -{points} points (Old: {oldPoints}, New: {relationshipPoints}) — Level: {relationshipLevel}");
+
+        OnRelationshipChanged?.Invoke(); 
     }
+
 
     private void UpdateRelationshipLevel()
     {
         relationshipLevel = relationshipPoints switch
         {
-            
             < 10 => RelationshipLevel.Neutral,
             > 10 and < 20 => RelationshipLevel.Classmate,
             >= 20 and < 30 => RelationshipLevel.Friendly,
@@ -117,6 +131,7 @@ public class SO_Character : ScriptableObject
             _ => RelationshipLevel.Classmate
         };
     }
+ 
     
     public DialogueData GetRandomDialogue()
     {
@@ -126,7 +141,7 @@ public class SO_Character : ScriptableObject
             return null;
         }
 
-        int randomIndex = Random.Range(0, dialogueData.Count);
+        int randomIndex = UnityEngine.Random.Range(0, dialogueData.Count);
         return dialogueData[randomIndex];
     }
     

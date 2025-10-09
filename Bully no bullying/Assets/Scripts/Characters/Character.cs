@@ -5,7 +5,7 @@ using Interfaces;
 using TMPro;
 using UnityEngine.UI;
 using System.Linq;
-
+using UI;
 public class Character : MonoBehaviour, IInteractable
 {
     [SerializeField] GameManager gameManager;
@@ -19,13 +19,15 @@ public class Character : MonoBehaviour, IInteractable
     [SerializeField] Button choice1Button;
     [SerializeField] Button choice2Button;
     [SerializeField] Button choice3Button;
+    
+    [SerializeField] private CharacterUI characterUI;
 
     void Start()
     {
         dialogueCanvas.gameObject.SetActive(false);
         if (characterData != null)
         {
-            characterData = Instantiate(characterData);
+            characterData = CharacterDataCache.GetOrCreate(characterData);
 
             // Load used dialogues
             List<string> loadedNames = SaveData.LoadUsedDialogues(characterData.CharacterName);
@@ -55,6 +57,10 @@ public class Character : MonoBehaviour, IInteractable
     {
         gameManager.isInteracting = true;
         dialogueCanvas.gameObject.SetActive(true);
+        
+        if (characterUI != null)
+            characterUI.SetCharacter(characterData);
+
         DialogueData randomDialog = characterData.GetRandomDialogue();
 
         while (characterData.UsedDialogues.Contains(randomDialog))
