@@ -32,13 +32,25 @@ namespace UI
         {
             if (m_canvas == null)
             {
-                m_canvas = FindObjectOfType<Canvas>();
+                // Prefer a Canvas on or above the popup (same hierarchy)
+                m_canvas = GetComponentInParent<Canvas>();
+                if (m_canvas == null)
+                {
+                    // fallback to global find
+                    m_canvas = FindObjectOfType<Canvas>();
+                }
+
                 if (m_canvas == null)
                 {
                     Debug.LogError("Popup: No Canvas found in the scene! UI will not render correctly for popup: " + gameObject.name);
                 }
+                else
+                {
+                    Debug.Log($"Popup: Using canvas '{m_canvas.name}' for popup '{gameObject.name}'.");
+                }
             }
         }
+
 
         public void Open(string caller = "UnknownCaller", Action onOk = null) // <<< MODIFIED: Accept a callback
         {
@@ -98,87 +110,96 @@ namespace UI
             gameObject.SetActive(false);
         }
 
-        private void AddBackground()
+private void AddBackground()
+{
+    Debug.Log($"Popup.AddBackground() for {gameObject.name}: m_background before check: {(m_background == null ? "null" : m_background.GetInstanceID().ToString())}");
+
+    // If there is already a background (maybe leftover) remove it first
+    if (m_background != null)
+    {
+        Destroy(m_background);
+        m_background = null;
+    }
+
+    // Make sure we have a canvas and prefer the one that's an ancestor of this popup
+    if (m_canvas == null)
+    {
+        m_canvas = GetComponentInParent<Canvas>() ?? FindObjectOfType<Canvas>();
+        if (m_canvas == null)
         {
-            Debug.Log($"<color=orange>[{Time.frameCount}] Popup.AddBackground() called for {gameObject.name} (Popup ID: {GetInstanceID()}).</color> m_background before check: {(m_background == null ? "null" : m_background.GetInstanceID().ToString())}");
-
-            if (m_background != null)
-            {
-                Debug.LogWarning($"<color=orange>[{Time.frameCount}] Popup.AddBackground() for {gameObject.name}: Existing m_background (ID: {m_background.GetInstanceID()}) found. Destroying it before creating new.</color>");
-                Destroy(m_background);
-                m_background = null;
-            }
-            else
-            {
-                Debug.Log($"<color=orange>[{Time.frameCount}] Popup.AddBackground() for {gameObject.name}: No existing m_background found. Proceeding to create new.</color>");
-            }
-
-            if (m_canvas == null)
-            {
-                m_canvas = FindObjectOfType<Canvas>();
-                if (m_canvas == null)
-                {
-                    Debug.LogError("Popup: No Canvas found in the scene to attach background to for popup: " + gameObject.name);
-                    return;
-                }
-            }
-
-            var bgTex = new Texture2D(1, 1);
-            bgTex.SetPixel(0, 0, backgroundColor);
-            bgTex.Apply();
-
-            m_background = new GameObject($"PopupBackground_{gameObject.name}_AssociatedWith_{GetInstanceID()}");
-            
-            var image = m_background.AddComponent<Image>();
-            var rect = new Rect(0, 0, bgTex.width, bgTex.height);
-            var sprite = Sprite.Create(bgTex, rect, new Vector2(0.5f, 0.5f), 1);
-            image.sprite = sprite;
-            image.color = backgroundColor;
-
-            image.canvasRenderer.SetAlpha(0.0f);
-            image.CrossFadeAlpha(1.0f, 0.4f, false);
-
-            m_background.transform.SetParent(m_canvas.transform, false);
-            
-            RectTransform bgRectTransform = m_background.GetComponent<RectTransform>();
-            if (bgRectTransform == null)
-                bgRectTransform = m_background.AddComponent<RectTransform>();
-
-            bgRectTransform.anchorMin = Vector2.zero;
-            bgRectTransform.anchorMax = Vector2.one;
-            bgRectTransform.sizeDelta = Vector2.zero;
-            bgRectTransform.anchoredPosition = Vector2.zero;
-
-            m_background.transform.SetSiblingIndex(transform.GetSiblingIndex());
-
-            Debug.Log($"<color=orange>[{Time.frameCount}] Popup.AddBackground() for {gameObject.name}: NEW background created (ID: {m_background.GetInstanceID()}). Parent: {m_canvas.name}. Sibling Index: {m_background.transform.GetSiblingIndex()}.</color>");
+            Debug.LogError("Popup: No Canvas found in the scene to attach background to for popup: " + gameObject.name);
+            return;
         }
+    }
 
-        private void RemoveBackground()
-        {
-            Debug.Log($"<color=red>[{Time.frameCount}] Popup.RemoveBackground() called for {gameObject.name} (Popup ID: {GetInstanceID()}).</color> m_background before check: {(m_background == null ? "null" : m_background.GetInstanceID().ToString())}");
+    // Create a simple 1x1 texture and sprite for the background
+    var bgTex = new Texture2D(1, 1);
+    bgTex.SetPixel(0, 0, backgroundColor);
+    bgTex.Apply();
 
-            if (m_background != null)
-            {
-                Debug.Log($"<color=red>[{Time.frameCount}] Popup.RemoveBackground() for {gameObject.name}: Fading out and destroying m_background (ID: {m_background.GetInstanceID()}) with delay.</color>");
-                var image = m_background.GetComponent<Image>();
-                if (image != null)
-                {
-                    image.CrossFadeAlpha(0.0f, 0.2f, false);
-                }
-                else
-                {
-                    Debug.LogWarning($"<color=red>[{Time.frameCount}] Popup.RemoveBackground() for {gameObject.name}: Image component on m_background is null. This should not happen.</color>");
-                }
+    m_background = new GameObject($"PopupBackground_{gameObject.name}_AssociatedWith_{GetInstanceID()}");
 
-                Destroy(m_background, 0.25f);
-                m_background = null;
-            }
-            else
-            {
-                Debug.LogWarning($"<color=red>[{Time.frameCount}] Popup.RemoveBackground() for {gameObject.name}: m_background is null. Nothing to destroy.</color>");
-            }
-        }
+    var image = m_background.AddComponent<Image>();
+    var rect = new Rect(0, 0, bgTex.width, bgTex.height);
+    var sprite = Sprite.Create(bgTex, rect, new Vector2(0.5f, 0.5f), 1);
+    image.sprite = sprite;
+    image.color = backgroundColor;
+
+    // IMPORTANT: let background receive raycasts so it blocks underlying UI,
+    // but we will make sure popup is above it so popup is interactive.
+    image.raycastTarget = true;
+
+    // Parent the background to the SAME parent as the popup (so sibling indices are comparable)
+    // If popup is not child of canvas directly, we attach to the popup's parent if possible.
+    Transform targetParent = transform.parent != null ? transform.parent : m_canvas.transform;
+    m_background.transform.SetParent(targetParent, false);
+
+    // Make background stretch to fill parent
+    RectTransform bgRectTransform = m_background.GetComponent<RectTransform>();
+    if (bgRectTransform == null)
+        bgRectTransform = m_background.AddComponent<RectTransform>();
+
+    bgRectTransform.anchorMin = Vector2.zero;
+    bgRectTransform.anchorMax = Vector2.one;
+    bgRectTransform.sizeDelta = Vector2.zero;
+    bgRectTransform.anchoredPosition = Vector2.zero;
+
+    // Place the background right below the popup so popup remains on top.
+    // If popup is under same parent, this will put background immediately before popup.
+    int popupIndex = transform.GetSiblingIndex();
+    int bgIndex = Mathf.Max(0, popupIndex);
+    m_background.transform.SetSiblingIndex(bgIndex);
+    // ensure popup is last sibling so it's visually above background and other siblings
+    transform.SetAsLastSibling();
+
+    // Fade in
+    image.canvasRenderer.SetAlpha(0.0f);
+    image.CrossFadeAlpha(1.0f, 0.4f, false);
+
+    Debug.Log($"Popup.AddBackground() for {gameObject.name}: NEW background created (ID: {m_background.GetInstanceID()}). Parent: {targetParent.name}. Popup sibling index: {popupIndex}. Background sibling index: {m_background.transform.GetSiblingIndex()}.");
+}
+
+
+private void RemoveBackground()
+{
+    Debug.Log($"Popup.RemoveBackground() called for {gameObject.name}. m_background before check: {(m_background == null ? "null" : m_background.GetInstanceID().ToString())}");
+
+    if (m_background != null)
+    {
+        var image = m_background.GetComponent<Image>();
+        if (image != null)
+            image.CrossFadeAlpha(0.0f, 0.2f, false);
+
+        // Schedule destroy
+        Destroy(m_background, 0.25f);
+        m_background = null;
+    }
+    else
+    {
+        Debug.LogWarning($"Popup.RemoveBackground() for {gameObject.name}: m_background is null. Nothing to destroy.");
+    }
+}
+
 
         public void SetMessage(string message)
         {
