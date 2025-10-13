@@ -24,6 +24,9 @@ namespace Firebase.Scripts
         [Header("Common UI Elements")]
         public TMP_Text statusText;
 
+        [Header("User Info Display")]
+        public TMP_Text currentEmailText; // 👈 NEW FIELD for showing current user's email
+
         [Header("Popups")]
         public LoginPopup loginPopup;
         public LoginPopup signupPopup;
@@ -125,21 +128,24 @@ namespace Firebase.Scripts
                     }
 
                     UpdateStatus("Currently signed in as: " + currentUser.Email);
+                    UpdateCurrentEmailDisplay(); // 👈 Update email display
+
                     if (loginPopup != null && loginPopup.gameObject.activeInHierarchy) loginPopup.Close();
                     if (signupPopup != null && signupPopup.gameObject.activeInHierarchy) signupPopup.Close();
                     if (errorPopup != null && errorPopup.gameObject.activeInHierarchy) errorPopup.Close();
                     if (successPopup != null && successPopup.gameObject.activeInHierarchy) successPopup.Close();
 
-                    Debug.Log("AuthStateChanged: SetUIInteractable(true) after successful sign-in."); // Debug log
-                    SetUIInteractable(true); // Ensure UI is interactable for the main application
+                    Debug.Log("AuthStateChanged: SetUIInteractable(true) after successful sign-in."); 
+                    SetUIInteractable(true);
                     _loginPopupHasBeenOpened = false;
                     HandleAuthSuccessTransition();
                 }
                 else
                 {
-                    Debug.Log("AuthStateChanged: No user currently signed in."); // Debug log
+                    Debug.Log("AuthStateChanged: No user currently signed in."); 
                     UpdateStatus("Please sign in or register.");
-                    
+                    UpdateCurrentEmailDisplay(); // 👈 Update to show "Not signed in"
+
                     if (loginPopup != null && !_isSigningInManually && !_loginPopupHasBeenOpened)
                     {
                         loginPopup.Open("AuthManager.AuthStateChanged");
@@ -149,8 +155,8 @@ namespace Firebase.Scripts
                     if (loginPasswordInputField != null) loginPasswordInputField.text = "";
                     if (signupPasswordInputField != null) signupPasswordInputField.text = "";
                     
-                    Debug.Log("AuthStateChanged: SetUIInteractable(true) when no user is signed in."); // Debug log
-                    SetUIInteractable(true); // Ensure UI is interactable for login/signup
+                    Debug.Log("AuthStateChanged: SetUIInteractable(true) when no user is signed in.");
+                    SetUIInteractable(true);
                 }
             }
         }
@@ -178,7 +184,6 @@ namespace Firebase.Scripts
             {
                 Debug.LogWarning("ErrorPopup reference is null.");
             }
-            // For error popups, we immediately re-enable UI after showing the message.
             SetUIInteractable(true); 
         }
 
@@ -232,52 +237,50 @@ namespace Firebase.Scripts
                 return;
             }
 
-            SetUIInteractable(false); // Disable UI while processing
+            SetUIInteractable(false);
             _isSigningInManually = true; 
             Debug.Log("[Auth] Starting registration attempt...");
 
             firebaseAuthInstance.CreateUserWithEmailAndPasswordAsync(email, password)
                 .ContinueWith(task =>
                 {
-                        _isSigningInManually = false; 
+                    _isSigningInManually = false; 
 
-                        if (task.IsCanceled)
-                        {
-                            ShowErrorPopup("Registration cancelled.");
-                            return;
-                        }
-                        if (task.IsFaulted)
-                        {
-                            string msg = GetAuthErrorMessage(task.Exception as AggregateException);
-                            ShowErrorPopup(msg); 
-                            return;
-                        }
-                        Debug.Log("[Auth] User registered successfully. Signing out immediately to present custom success message.");
+                    if (task.IsCanceled)
+                    {
+                        ShowErrorPopup("Registration cancelled.");
+                        return;
+                    }
+                    if (task.IsFaulted)
+                    {
+                        string msg = GetAuthErrorMessage(task.Exception as AggregateException);
+                        ShowErrorPopup(msg); 
+                        return;
+                    }
+                    Debug.Log("[Auth] User registered successfully. Signing out immediately to present custom success message.");
                         
-                        firebaseAuthInstance.SignOut(); 
-                        
-                        if (successPopup != null)
-                        {
-                            successPopup.SetMessage("Registration successful! Please sign in with your new account.");
-                            successPopup.Open(
-                                "AuthManager.RegisterSuccess",
-                                () => { // This Action is called when OK is pressed on the success popup
-                                    if (loginPopup != null)
-                                    {
-                                        loginPopup.Open("AuthManager.RegisterSuccessCallback");
-                                    }
-                                    else
-                                    {
-                                        Debug.LogError("AuthManager: Login Popup reference is null after successful registration callback.");
-                                    }
-                                }
-                            );
-                        }
-                        else
-                        {
-                            Debug.LogError("AuthManager: Success Popup reference is null. Falling back to direct login popup.");
-                            if (loginPopup != null) loginPopup.Open();
-                        }
+                    firebaseAuthInstance.SignOut(); 
+                    UpdateCurrentEmailDisplay(); // 👈 Make sure it clears email
+
+                    if (successPopup != null)
+                    {
+                        successPopup.SetMessage("Registration successful! Please sign in with your new account.");
+                        successPopup.Open(
+                            "AuthManager.RegisterSuccess",
+                            () =>
+                            {
+                                if (loginPopup != null)
+                                    loginPopup.Open("AuthManager.RegisterSuccessCallback");
+                                else
+                                    Debug.LogError("AuthManager: Login Popup reference is null after successful registration callback.");
+                            }
+                        );
+                    }
+                    else
+                    {
+                        Debug.LogError("AuthManager: Success Popup reference is null. Falling back to direct login popup.");
+                        if (loginPopup != null) loginPopup.Open();
+                    }
                 }, TaskScheduler.FromCurrentSynchronizationContext()); 
         }
 
@@ -297,36 +300,38 @@ namespace Firebase.Scripts
                 return;
             }
 
-            SetUIInteractable(false); // Disable UI while processing
+            SetUIInteractable(false);
             _isSigningInManually = true;
             Debug.Log("[Auth] Starting login attempt...");
 
             firebaseAuthInstance.SignInWithEmailAndPasswordAsync(email, password)
                 .ContinueWith(task =>
                 {
-                        _isSigningInManually = false; 
+                    _isSigningInManually = false; 
 
-                        if (task.IsCanceled)
-                        {
-                            ShowErrorPopup("Login cancelled.");
-                            return;
-                        }
-                        if (task.IsFaulted)
-                        {
-                            string msg = GetAuthErrorMessage(task.Exception as AggregateException);
-                            ShowErrorPopup(msg);
-                            return;
-                        }
-                        Debug.Log("[Auth] User logged in successfully.");
+                    if (task.IsCanceled)
+                    {
+                        ShowErrorPopup("Login cancelled.");
+                        return;
+                    }
+                    if (task.IsFaulted)
+                    {
+                        string msg = GetAuthErrorMessage(task.Exception as AggregateException);
+                        ShowErrorPopup(msg);
+                        return;
+                    }
 
-                        if (rememberMeToggle != null && rememberMeToggle.isOn)
-                            SaveRememberedCredentials();
-                        else
-                        {
-                            PlayerPrefs.SetInt(RememberMeKey, 0);
-                            PlayerPrefs.DeleteKey(SavedEmailKey);
-                            PlayerPrefs.Save();
-                        }
+                    Debug.Log("[Auth] User logged in successfully.");
+                    UpdateCurrentEmailDisplay(); // 👈 Show signed-in email
+
+                    if (rememberMeToggle != null && rememberMeToggle.isOn)
+                        SaveRememberedCredentials();
+                    else
+                    {
+                        PlayerPrefs.SetInt(RememberMeKey, 0);
+                        PlayerPrefs.DeleteKey(SavedEmailKey);
+                        PlayerPrefs.Save();
+                    }
                 }, TaskScheduler.FromCurrentSynchronizationContext()); 
         }
 
@@ -336,6 +341,8 @@ namespace Firebase.Scripts
             {
                 _isSigningInManually = false; 
                 firebaseAuthInstance.SignOut();
+                currentUser = null;
+                UpdateCurrentEmailDisplay(); // 👈 Clear the text
                 UpdateStatus("You have been signed out.");
                 Debug.Log("[Auth] User signed out.");
                 _loginPopupHasBeenOpened = false; 
@@ -352,6 +359,27 @@ namespace Firebase.Scripts
                 statusText.text = message;
         }
 
+        private void UpdateCurrentEmailDisplay()
+        {
+            if (currentEmailText != null)
+            {
+                if (currentUser != null)
+                {
+                    currentEmailText.text = $"Logged in as: {currentUser.Email}";
+                    Debug.Log($"[Auth] Displaying current user email: {currentUser.Email}");
+                }
+                else
+                {
+                    currentEmailText.text = "Not signed in";
+                    Debug.Log("[Auth] No user signed in; clearing email display.");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("[Auth] currentEmailText reference is missing in Inspector!");
+            }
+        }
+
         private void HandleAuthSuccessTransition()
         {
             if (loginEmailInputField != null) loginEmailInputField.text = "";
@@ -366,7 +394,7 @@ namespace Firebase.Scripts
 
             if (goToLogin && loginPopup != null) loginPopup.Open();
             else if (!goToLogin && signupPopup != null) signupPopup.Open();
-            SetUIInteractable(true); // Ensure UI is interactable after closing error popup
+            SetUIInteractable(true);
         }
 
         public void OnShowPasswordToggleChanged(bool showPassword)
