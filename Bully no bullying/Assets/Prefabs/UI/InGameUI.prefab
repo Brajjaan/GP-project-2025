@@ -1349,6 +1349,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: SideButton
       objectReference: {fileID: 0}
+    - target: {fileID: 1686897704698144725, guid: 06cbbfbfd31dad243914b3c6b1cea071,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2400533080477061431, guid: 06cbbfbfd31dad243914b3c6b1cea071,
         type: 3}
       propertyPath: m_Pivot.x
@@ -1509,6 +1514,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: Info
       objectReference: {fileID: 0}
+    - target: {fileID: 3437102349756529944, guid: 06cbbfbfd31dad243914b3c6b1cea071,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3437102349756529944, guid: 06cbbfbfd31dad243914b3c6b1cea071,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3437102349756529944, guid: 06cbbfbfd31dad243914b3c6b1cea071,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 35
+      objectReference: {fileID: 0}
+    - target: {fileID: 3437102349756529944, guid: 06cbbfbfd31dad243914b3c6b1cea071,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -225.88565
+      objectReference: {fileID: 0}
     - target: {fileID: 4514748583366083919, guid: 06cbbfbfd31dad243914b3c6b1cea071,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
@@ -1533,6 +1558,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 5343975912089311054, guid: 06cbbfbfd31dad243914b3c6b1cea071,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6790204126746982632, guid: 06cbbfbfd31dad243914b3c6b1cea071,
         type: 3}
@@ -1575,11 +1605,52 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[4].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
+    - target: {fileID: 8095900691073735829, guid: 06cbbfbfd31dad243914b3c6b1cea071,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8095900691073735829, guid: 06cbbfbfd31dad243914b3c6b1cea071,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8095900691073735829, guid: 06cbbfbfd31dad243914b3c6b1cea071,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 35
+      objectReference: {fileID: 0}
+    - target: {fileID: 8095900691073735829, guid: 06cbbfbfd31dad243914b3c6b1cea071,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -35
+      objectReference: {fileID: 0}
+    - target: {fileID: 8318929902085721945, guid: 06cbbfbfd31dad243914b3c6b1cea071,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8318929902085721945, guid: 06cbbfbfd31dad243914b3c6b1cea071,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8318929902085721945, guid: 06cbbfbfd31dad243914b3c6b1cea071,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8318929902085721945, guid: 06cbbfbfd31dad243914b3c6b1cea071,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 5105341315343869258, guid: 06cbbfbfd31dad243914b3c6b1cea071, type: 3}
     - {fileID: 3618578748517306475, guid: 06cbbfbfd31dad243914b3c6b1cea071, type: 3}
     m_RemovedGameObjects:
     - {fileID: 3571161888133857127, guid: 06cbbfbfd31dad243914b3c6b1cea071, type: 3}
+    - {fileID: 1686897704698144725, guid: 06cbbfbfd31dad243914b3c6b1cea071, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 06cbbfbfd31dad243914b3c6b1cea071, type: 3}
@@ -1886,9 +1957,25 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8502472756834580921, guid: c36bedef999585e4f81929c52e4807cb,
+        type: 3}
+      propertyPath: m_text
+      value: 'Game made by:
+
+        Bryan & Lukas
+
+
+        Additional credits:
+
+        Erik:
+        Character & Dialogues
+
+        Niko: Room design'
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 4489093965931847076, guid: c36bedef999585e4f81929c52e4807cb, type: 3}
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 385058431577480702, guid: c36bedef999585e4f81929c52e4807cb, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 8407225735039744746, guid: c36bedef999585e4f81929c52e4807cb,
