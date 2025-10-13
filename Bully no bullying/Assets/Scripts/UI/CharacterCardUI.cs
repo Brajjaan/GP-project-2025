@@ -11,6 +11,8 @@ namespace UI
         [SerializeField] private TMP_Text nameText;
         [SerializeField] private TMP_Text levelText;
         [SerializeField] private TMP_Text pointsText;
+        
+        [SerializeField] private TMP_FontAsset customFont;
 
         private SO_Character linkedCharacter;
 
@@ -44,6 +46,14 @@ namespace UI
             if (nameText) nameText.text = linkedCharacter.CharacterName;
             if (levelText) levelText.text = $"Level: {linkedCharacter.CurrentRelationshipLevel}";
             if (pointsText) pointsText.text = $"Points: {linkedCharacter.CurrentRelationshipPoints}";
+            
+            if (customFont != null)
+            {
+                nameText.font = customFont;
+                levelText.font = customFont;
+                pointsText.font = customFont;
+            }
+            
         }
 
         /// <summary>

@@ -3,7 +3,12 @@ guid: d6e2e8af109e0f147b10d47ad7fa2a01
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - icon: {instanceID: 0}
+  - nameText: {instanceID: 0}
+  - levelText: {instanceID: 0}
+  - pointsText: {instanceID: 0}
+  - customFont: {fileID: 11400000, guid: 015573da50ed04390be9f20287a541d6, type: 2}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

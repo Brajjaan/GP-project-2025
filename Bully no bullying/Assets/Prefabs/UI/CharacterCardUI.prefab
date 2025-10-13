@@ -458,6 +458,7 @@ MonoBehaviour:
   nameText: {fileID: 3586140402992889609}
   levelText: {fileID: 817791133577056630}
   pointsText: {fileID: 8532224151341538283}
+  customFont: {fileID: 11400000, guid: 015573da50ed04390be9f20287a541d6, type: 2}
 --- !u!1 &8871090397992534718
 GameObject:
   m_ObjectHideFlags: 0
