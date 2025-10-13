@@ -41,7 +41,7 @@ namespace Firebase.Scripts
         private const string RememberMeKey = "RememberMe";
         private const string SavedEmailKey = "SavedEmail";
 
-        private IEnumerator Start()
+        /* private IEnumerator Start()
         {
             Debug.Log("[Auth] Checking Firebase dependencies...");
             var checkTask = Firebase.FirebaseApp.CheckAndFixDependenciesAsync();
@@ -58,8 +58,21 @@ namespace Firebase.Scripts
                 Debug.LogError($"[Auth] Could not resolve Firebase dependencies: {checkTask.Result}");
                 ShowErrorPopup("Firebase initialization failed. Please restart the game.");
             }
+        } */
+        private IEnumerator Start()
+        {
+            Debug.Log("[Auth] Waiting for FirebaseInitializer to complete...");
+
+            // Wait until FirebaseInitializer reports ready
+            while (FirebaseInitializer.database == null)
+                yield return null;
+
+            Debug.Log("[Auth] Firebase ready, initializing Auth...");
+            LoadRememberedCredentials();
+            InitAuth();
         }
 
+        
         public void OnRememberMeToggleChanged(bool isOn)
         {
             SaveRememberedCredentials();

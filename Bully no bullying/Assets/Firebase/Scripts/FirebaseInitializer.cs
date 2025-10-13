@@ -1,6 +1,6 @@
 using UnityEngine;
 using Firebase;
-using Firebase.Extensions; // For ContinueWithOnMainThread
+using Firebase.Extensions;
 using Firebase.Database;
 
 public class FirebaseInitializer : MonoBehaviour
